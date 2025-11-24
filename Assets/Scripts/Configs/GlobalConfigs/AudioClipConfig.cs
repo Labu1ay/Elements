@@ -1,0 +1,17 @@
+﻿using System.Collections.Generic;
+using Sirenix.OdinInspector;
+using Sirenix.Serialization;
+using UnityEngine;
+
+namespace Elements.Configs.GlobalConfigs
+{
+    [CreateAssetMenu(fileName = "AudioClipConfig", menuName = "configs/AudioClipConfig", order = 0)]
+    public class AudioClipConfig : SerializedScriptableObject {
+
+        [OdinSerialize] Dictionary<string, AudioClip> _audioClips = new Dictionary<string, AudioClip>();
+
+        public AudioClip GetAudioClip(string audioClipName) {
+            return _audioClips.ContainsKey(audioClipName) ? _audioClips[audioClipName] : null;
+        }
+    }
+}
