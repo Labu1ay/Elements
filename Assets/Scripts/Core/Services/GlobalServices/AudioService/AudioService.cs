@@ -32,6 +32,7 @@ namespace Elements.Core.Services.GlobalServices
 
         private Tween _tween;
 
+        [Inject]
         public AudioService(IAssetService assetService, AudioClipConfig audioClipConfig)
         {
             _assetService = assetService;

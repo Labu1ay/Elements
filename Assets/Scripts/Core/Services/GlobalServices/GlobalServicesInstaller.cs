@@ -9,6 +9,7 @@ namespace Elements.Core.Services
         {
             Container.BindInterfacesAndSelfTo<SceneLoaderService>().AsSingle();
             Container.BindInterfacesAndSelfTo<AssetService>().AsSingle();
+            Container.BindInterfacesAndSelfTo<InputService>().AsSingle();
             Container.BindInterfacesAndSelfTo<SaveLoadService>().AsSingle();
             Container.BindInterfacesAndSelfTo<AudioService>().AsSingle();
         }

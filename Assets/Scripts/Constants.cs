@@ -7,7 +7,7 @@
         public const string CLICK_CLIP_KEY = "Click";
         
         public const string CELL_LAYER = "Cell";
-        public const string ITEM_LAYER = "Item";
+        public const string ELEMENT_LAYER = "Element";
         public const string OVERLAY_LAYER = "Overlay";
     }
 }
