@@ -3,16 +3,10 @@
 namespace Elements.UI
 {
     [ExecuteAlways]
-    [RequireComponent(typeof(SpriteRenderer))]
     public class BackgroundScaler : MonoBehaviour
     {
         [SerializeField] private SpriteRenderer _spriteRenderer;
         private Camera _mainCamera;
-
-        private void OnValidate()
-        {
-            _spriteRenderer ??= GetComponent<SpriteRenderer>();
-        }
 
         void Start()
         {
@@ -29,24 +23,20 @@ namespace Elements.UI
 
         private void ScaleBackground()
         {
-            if (_spriteRenderer == null || _mainCamera == null) return;
+            if (_spriteRenderer == null || _mainCamera == null)
+                return;
 
-            var worldHeight = 2f * _mainCamera.orthographicSize;
-            var worldWidth = worldHeight * _mainCamera.aspect;
+            var cameraHeight = 2f * _mainCamera.orthographicSize;
+            var cameraWidth = cameraHeight * _mainCamera.aspect;
 
             var spriteSize = _spriteRenderer.sprite.bounds.size;
 
-            var scaleX = worldWidth / spriteSize.x;
-            var scaleY = worldHeight / spriteSize.y;
-            var scale = Mathf.Max(scaleX, scaleY);
+            float scaleX = cameraWidth / spriteSize.x;
+            float scaleY = cameraHeight / spriteSize.y;
 
-            transform.localScale = new Vector3(scale, scale, 1f);
+            float scale = Mathf.Max(scaleX, scaleY);
 
-            var cameraBottom = _mainCamera.transform.position.y - worldHeight / 2f;
-            var spriteBottom = _spriteRenderer.bounds.min.y;
-            var delta = cameraBottom - spriteBottom;
-
-            transform.position += new Vector3(0, delta, 0);
+            transform.localScale = new Vector3(scale, scale, transform.localScale.z);
         }
     }
 }

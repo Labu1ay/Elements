@@ -56,11 +56,14 @@ namespace Elements.Core.Controllers.GameControllers
             var yOffset = upTouchPosition.y - _downTouchPosition.y;
             var xOffset = upTouchPosition.x - _downTouchPosition.x;
 
-            if (Mathf.Abs(xOffset) > Mathf.Abs(yOffset))
-                _currentElement.Move(xOffset > 0 ? MoveDirection.RIGHT : MoveDirection.LEFT);
-            else
-                _currentElement.Move(yOffset > 0 ? MoveDirection.UP : MoveDirection.DOWN);
-            
+            if (!_currentElement.IsInteraction)
+            {
+                if (Mathf.Abs(xOffset) > Mathf.Abs(yOffset))
+                    _currentElement.Move(xOffset > 0 ? MoveDirection.RIGHT : MoveDirection.LEFT);
+                else
+                    _currentElement.Move(yOffset > 0 ? MoveDirection.UP : MoveDirection.DOWN);
+            }
+
             _currentElement = null;
         }
 

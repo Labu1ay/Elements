@@ -1,6 +1,8 @@
 ﻿using System;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using Elements.Core.Services.GameServices;
+using Elements.Game.Elements.Animation;
 using UnityEngine;
 using Zenject;
 
@@ -9,11 +11,16 @@ namespace Elements.Game.Elements
     public class Element : MonoBehaviour
     {
         private const float MOVE_DURATION = 0.25f;
+        private const float FALL_SPEED = 15f;
         
         [Inject] private readonly IGridElementsService _gridElementsService;
         
         [SerializeField] private SpriteRenderer _spriteRenderer;
-        [field: SerializeField] public Vector2Int RoundPosition { get; private set; }
+        [SerializeField] private ElementAnimation _elementAnimation;
+        [field: SerializeField] public ElementType Type { get; private set; }
+        
+        public bool IsInteraction { get; private set; }
+        public Vector2Int RoundPosition { get; private set; }
 
         private Tween _tween;
 
@@ -21,8 +28,9 @@ namespace Elements.Game.Elements
         {
             _gridElementsService.AddElement(this);
             SetRoundPosition(new Vector2Int(Mathf.RoundToInt(transform.position.x), Mathf.RoundToInt(transform.position.y)));
+            UpdateSortingOrder(RoundPosition);
         }
-        
+
         public void Move(MoveDirection direction)
         {
             Vector2Int newRoundPosition = direction switch
@@ -33,27 +41,67 @@ namespace Elements.Game.Elements
                 MoveDirection.RIGHT => new Vector2Int(RoundPosition.x + 1, RoundPosition.y),
                 _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
             };
-
-            Move(newRoundPosition);
+            
+            if(direction == MoveDirection.UP && !_gridElementsService.ContainsElementInPosition(newRoundPosition))
+                return;
+            
+            if(direction == MoveDirection.DOWN && newRoundPosition.y < 0)
+                return;
+            
             _gridElementsService.TryMoveSecondElement(RoundPosition, newRoundPosition);
+            
+            Move(newRoundPosition, async() =>
+            {
+                await UniTask.Yield();
+                _gridElementsService.TryFallElements().Forget();
+            });
         }
 
-        public void Move(Vector2Int newRoundPosition)
+        public void Move(Vector2Int newRoundPosition, Action callback = null)
         {
+            UpdateSortingOrder(newRoundPosition);
+            
+            IsInteraction = true;
+            
             _tween = transform
                 .DOMove((Vector2)newRoundPosition, MOVE_DURATION)
                 .SetEase(Ease.Linear)
                 .OnComplete(() =>
                 {
                     SetRoundPosition(newRoundPosition);
+                    callback?.Invoke();
+                    IsInteraction = false;
                 });
         }
 
-        private void SetRoundPosition(Vector2Int newRoundPosition)
+        public void Fall(Vector2Int newRoundPosition)
         {
-            RoundPosition = newRoundPosition;
-            _spriteRenderer.sortingOrder = RoundPosition.x + RoundPosition.y;
+            UpdateSortingOrder(newRoundPosition);
+            SetRoundPosition(newRoundPosition);
+
+            IsInteraction = true;
+            
+            _tween = transform
+                .DOMove((Vector2)newRoundPosition, FALL_SPEED)
+                .SetEase(Ease.Linear)
+                .SetSpeedBased()
+                .OnComplete(() => { IsInteraction = false; });
         }
+
+        public async UniTaskVoid Destroy()
+        {
+            IsInteraction = true;
+            await _elementAnimation.AsyncSetAnimation(AnimationType.DESTROY);
+            _gridElementsService.RemoveElement(this);
+            Destroy(gameObject);
+        }
+        
+        private void UpdateSortingOrder(Vector2Int roundPosition) 
+            => _spriteRenderer.sortingOrder = roundPosition.x + roundPosition.y;
+           
+
+        private void SetRoundPosition(Vector2Int newRoundPosition) => 
+            RoundPosition = newRoundPosition;
 
         private void OnDestroy()
         {

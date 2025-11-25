@@ -6,6 +6,7 @@ namespace Elements.Core.Services.GameServices
     {
         public override void InstallBindings()
         {
+            Container.BindInterfacesAndSelfTo<MatchElementsService>().AsSingle();
             Container.BindInterfacesAndSelfTo<GridElementsService>().AsSingle();
         }
     }
