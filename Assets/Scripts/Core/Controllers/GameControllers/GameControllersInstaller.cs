@@ -7,6 +7,7 @@ namespace Elements.Core.Controllers.GameControllers
         public override void InstallBindings()
         {
             Container.BindInterfacesAndSelfTo<ElementMovementController>().AsSingle();
+            Container.BindInterfacesAndSelfTo<BalloonController>().AsSingle();
         }
     }
 }

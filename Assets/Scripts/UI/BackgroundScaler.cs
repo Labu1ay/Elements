@@ -3,7 +3,9 @@ using UnityEngine;
 
 namespace Elements.UI
 {
+#if UNITY_EDITOR
     [ExecuteAlways]
+#endif
     public class BackgroundScaler : MonoBehaviour
     {
         [SerializeField] private SpriteRenderer _spriteRenderer;
@@ -12,7 +14,7 @@ namespace Elements.UI
         private void Start()
         {
             _mainCamera = Camera.main;
-            ScaleBackground();
+            ScaleBackground().Forget();
             
             SetPosition().Forget();
         }
@@ -30,8 +32,10 @@ namespace Elements.UI
 #endif
         }
 
-        private void ScaleBackground()
+        private async UniTaskVoid ScaleBackground()
         {
+            await UniTask.WaitForEndOfFrame();
+            
             if (_spriteRenderer == null || _mainCamera == null)
                 return;
 

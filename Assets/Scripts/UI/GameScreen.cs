@@ -15,6 +15,7 @@ namespace Elements.UI
         
         [Inject] private readonly ILevelControlService _levelControlService;
         [Inject] private readonly ISceneLoaderService _sceneLoaderService;
+        [Inject] private readonly IAudioService _audioService;
         
         [SerializeField] private Button[] _restartButton;
         [SerializeField] private TextMeshProUGUI _levelText;
@@ -28,6 +29,7 @@ namespace Elements.UI
             
             _restartButton.ForEach(b => b.OnClickAsObservable().Subscribe(_ =>
             {
+                _audioService.PlaySound(Constants.CLICK_CLIP_KEY);
                 _sceneLoaderService.Load(_sceneLoaderService.ActiveSceneName);
             }).AddTo(_disposables));
 

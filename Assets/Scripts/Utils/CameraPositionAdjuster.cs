@@ -1,38 +1,47 @@
-﻿using UnityEngine;
+﻿using Cysharp.Threading.Tasks;
+using UnityEngine;
 
-[ExecuteAlways]
-[RequireComponent(typeof(Camera))]
-public class CameraRelativePosition : MonoBehaviour
+
+namespace Elements.Utils
 {
-    [Range(0f, 1f)] [SerializeField] private float _normalizedOffsetFromBottom = 0.2f;
-    private Camera _camera;
-    
-    private void Start()
-    {
-        _camera = GetComponent<Camera>();
-        AdjustCameraPosition();
-    }
-    
-    private void Update()
-    {
 #if UNITY_EDITOR
-        AdjustCameraPosition();
+    [ExecuteAlways]
 #endif
-    }
-
-    private void AdjustCameraPosition()
+    [RequireComponent(typeof(Camera))]
+    public class CameraRelativePosition : MonoBehaviour
     {
-        if (!_camera.orthographic) return;
+        [Range(0f, 1f)] [SerializeField] private float _normalizedOffsetFromBottom = 0.2f;
+        private Camera _camera;
+    
+        private void Start()
+        {
+            _camera = GetComponent<Camera>();
+            AdjustCameraPosition().Forget();
+        }
+    
+        private void Update()
+        {
+#if UNITY_EDITOR
+            AdjustCameraPosition();
+#endif
+        }
 
-        var halfHeight = _camera.orthographicSize;
-        var worldHeight = halfHeight * 2f;
+        private async UniTaskVoid AdjustCameraPosition()
+        {
+            await UniTask.WaitForEndOfFrame();
+            
+            if (!_camera.orthographic) return;
 
-        var offsetWorldUnits = worldHeight * _normalizedOffsetFromBottom;
+            var halfHeight = _camera.orthographicSize;
+            var worldHeight = halfHeight * 2f;
 
-        var desiredCameraY = halfHeight - offsetWorldUnits;
+            var offsetWorldUnits = worldHeight * _normalizedOffsetFromBottom;
 
-        var position = _camera.transform.position;
-        position.y = desiredCameraY;
-        _camera.transform.position = position;
+            var desiredCameraY = halfHeight - offsetWorldUnits;
+
+            var position = _camera.transform.position;
+            position.y = desiredCameraY;
+            _camera.transform.position = position;
+        }
     }
 }
