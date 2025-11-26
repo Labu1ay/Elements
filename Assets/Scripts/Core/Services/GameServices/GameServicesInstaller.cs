@@ -8,6 +8,7 @@ namespace Elements.Core.Services.GameServices
         {
             Container.BindInterfacesAndSelfTo<MatchElementsService>().AsSingle();
             Container.BindInterfacesAndSelfTo<GridElementsService>().AsSingle();
+            Container.BindInterfacesAndSelfTo<LevelControlService>().AsSingle();
         }
     }
 }

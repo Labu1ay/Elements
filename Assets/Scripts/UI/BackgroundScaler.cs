@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 namespace Elements.UI
 {
@@ -8,13 +9,21 @@ namespace Elements.UI
         [SerializeField] private SpriteRenderer _spriteRenderer;
         private Camera _mainCamera;
 
-        void Start()
+        private void Start()
         {
             _mainCamera = Camera.main;
             ScaleBackground();
+            
+            SetPosition().Forget();
         }
 
-        void Update()
+        private async UniTaskVoid SetPosition()
+        {
+            await UniTask.WaitForEndOfFrame();
+            transform.position = new Vector3(_mainCamera.transform.position.x, transform.position.y, transform.position.z);
+        }
+
+        private void Update()
         {
 #if UNITY_EDITOR
             ScaleBackground();

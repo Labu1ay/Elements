@@ -8,6 +8,8 @@
         
         public const string CELL_LAYER = "Cell";
         public const string ELEMENT_LAYER = "Element";
+        
+        public const string CURTAIN_PATH = "LoadingCurtain";
         public const string OVERLAY_LAYER = "Overlay";
     }
 }

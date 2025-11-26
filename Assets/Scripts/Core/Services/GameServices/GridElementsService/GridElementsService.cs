@@ -1,22 +1,40 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using Elements.Core.Services.GameServices.Data;
 using Elements.Game.Elements;
 using UnityEngine;
 using Zenject;
 
 namespace Elements.Core.Services.GameServices
 {
-    public class GridElementsService : IGridElementsService
+    public class GridElementsService : IGridElementsService, IInitializable, ILateDisposable
     {
         private readonly IMatchElementsService _matchElementsService;
+        private readonly ILevelControlService _levelControlService;
         
         private List<Element> _elements = new List<Element>();
 
         [Inject]
-        public GridElementsService(IMatchElementsService matchElementsService)
+        public GridElementsService(
+            IMatchElementsService matchElementsService,
+            ILevelControlService levelControlService)
         {
             _matchElementsService = matchElementsService;
+            _levelControlService = levelControlService;
+        }
+        
+        public void Initialize()
+        {
+            Application.focusChanged += FocusChanged;
+        }
+
+        private void FocusChanged(bool isFocus)
+        {
+            var elementsData = 
+                _elements.Select(e => new ElementSavingData(e.Type, (e.RoundPosition.x, e.RoundPosition.y))).ToList();
+
+            _levelControlService.SaveElementsData(elementsData);
         }
 
         public void AddElement(Element element) => _elements.Add(element);
@@ -72,11 +90,19 @@ namespace Elements.Core.Services.GameServices
                 await UniTask.WaitWhile(() => _elements.Any(e => e.IsInteraction));
                 TryFallElements().Forget();
             }
+            
+            if(_elements.Count == 0)
+                _levelControlService.LevelComplete();
 
             foreach (var group in allGroups) 
                 group.Clear();
             
             allGroups.Clear();
+        }
+
+        public void LateDispose()
+        {
+            Application.focusChanged -= FocusChanged;
         }
     }
 }

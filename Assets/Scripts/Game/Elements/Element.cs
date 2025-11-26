@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using Elements.Core.Services.GameServices;
@@ -14,6 +15,7 @@ namespace Elements.Game.Elements
         private const float FALL_SPEED = 15f;
         
         [Inject] private readonly IGridElementsService _gridElementsService;
+        [Inject] private readonly ILevelControlService _levelControlService;
         
         [SerializeField] private SpriteRenderer _spriteRenderer;
         [SerializeField] private ElementAnimation _elementAnimation;
@@ -22,40 +24,54 @@ namespace Elements.Game.Elements
         public bool IsInteraction { get; private set; }
         public Vector2Int RoundPosition { get; private set; }
 
+        private CancellationTokenSource _cts;
         private Tween _tween;
 
         private void Start()
         {
             _gridElementsService.AddElement(this);
+            InitRoundPosition();
+        }
+
+        public void InitRoundPosition()
+        {
             SetRoundPosition(new Vector2Int(Mathf.RoundToInt(transform.position.x), Mathf.RoundToInt(transform.position.y)));
             UpdateSortingOrder(RoundPosition);
         }
 
         public void Move(MoveDirection direction)
         {
-            Vector2Int newRoundPosition = direction switch
-            {
-                MoveDirection.UP => new Vector2Int(RoundPosition.x, RoundPosition.y + 1),
-                MoveDirection.DOWN => new Vector2Int(RoundPosition.x, RoundPosition.y - 1),
-                MoveDirection.LEFT => new Vector2Int(RoundPosition.x - 1, RoundPosition.y),
-                MoveDirection.RIGHT => new Vector2Int(RoundPosition.x + 1, RoundPosition.y),
-                _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
-            };
-            
-            if(direction == MoveDirection.UP && !_gridElementsService.ContainsElementInPosition(newRoundPosition))
+            var newRoundPosition = CalculateNewPosition(direction);
+    
+            if (!CanMove(direction, newRoundPosition))
                 return;
-            
-            if(direction == MoveDirection.DOWN && newRoundPosition.y < 0)
-                return;
-            
+    
             _gridElementsService.TryMoveSecondElement(RoundPosition, newRoundPosition);
-            
-            Move(newRoundPosition, async() =>
+    
+            Move(newRoundPosition, async () =>
             {
-                await UniTask.Yield();
+                await UniTask.WaitForEndOfFrame();
                 _gridElementsService.TryFallElements().Forget();
             });
         }
+
+        private Vector2Int CalculateNewPosition(MoveDirection direction) => direction switch
+        {
+            MoveDirection.UP    => new Vector2Int(RoundPosition.x, RoundPosition.y + 1),
+            MoveDirection.DOWN  => new Vector2Int(RoundPosition.x, RoundPosition.y - 1),
+            MoveDirection.LEFT  => new Vector2Int(RoundPosition.x - 1, RoundPosition.y),
+            MoveDirection.RIGHT => new Vector2Int(RoundPosition.x + 1, RoundPosition.y),
+            _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
+        };
+
+        private bool CanMove(MoveDirection direction, Vector2Int newPosition) => direction switch
+        {
+            MoveDirection.UP    => _gridElementsService.ContainsElementInPosition(newPosition),
+            MoveDirection.DOWN  => newPosition.y >= 0,
+            MoveDirection.LEFT  => newPosition.x > _levelControlService.LeftBorderX,
+            MoveDirection.RIGHT => newPosition.x < _levelControlService.RightBorderX,
+            _ => false
+        };
 
         public void Move(Vector2Int newRoundPosition, Action callback = null)
         {
@@ -91,7 +107,10 @@ namespace Elements.Game.Elements
         public async UniTaskVoid Destroy()
         {
             IsInteraction = true;
-            await _elementAnimation.AsyncSetAnimation(AnimationType.DESTROY);
+            _cts = new CancellationTokenSource();
+            bool isCancelled = await _elementAnimation.AsyncSetAnimation(AnimationType.DESTROY, _cts.Token).SuppressCancellationThrow();
+            
+            if (isCancelled) return;
             _gridElementsService.RemoveElement(this);
             Destroy(gameObject);
         }
@@ -103,8 +122,16 @@ namespace Elements.Game.Elements
         private void SetRoundPosition(Vector2Int newRoundPosition) => 
             RoundPosition = newRoundPosition;
 
+        private void Cancel()
+        {
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = null;
+        }
+
         private void OnDestroy()
         {
+            Cancel();
             _tween?.Kill();
         }
     }

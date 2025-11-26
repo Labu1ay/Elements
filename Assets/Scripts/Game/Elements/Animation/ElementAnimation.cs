@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
@@ -63,12 +64,12 @@ namespace Elements.Game.Elements.Animation
         public void SetAnimation(AnimationType animationType) => 
             _animator.SetTrigger(_animations[animationType]);
 
-        public async UniTask AsyncSetAnimation(AnimationType animationType)
+        public async UniTask AsyncSetAnimation(AnimationType animationType, CancellationToken token = default)
         {
             SetAnimation(animationType);
-            await UniTask.Yield();
+            await UniTask.WaitForEndOfFrame(cancellationToken: token);
             AnimatorStateInfo stateInfo = _animator.GetCurrentAnimatorStateInfo(0);
-            await UniTask.Delay(TimeSpan.FromSeconds(stateInfo.length));
+            await UniTask.Delay(TimeSpan.FromSeconds(stateInfo.length), cancellationToken: token);
         }
 
         private void OnDestroy()
