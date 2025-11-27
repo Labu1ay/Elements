@@ -14,8 +14,8 @@ namespace Elements.UI
         private void Start()
         {
             _mainCamera = Camera.main;
-            ScaleBackground().Forget();
             
+            ScaleBackground().Forget();
             SetPosition().Forget();
         }
 
@@ -44,10 +44,10 @@ namespace Elements.UI
 
             var spriteSize = _spriteRenderer.sprite.bounds.size;
 
-            float scaleX = cameraWidth / spriteSize.x;
-            float scaleY = cameraHeight / spriteSize.y;
+            var scaleX = cameraWidth / spriteSize.x;
+            var scaleY = cameraHeight / spriteSize.y;
 
-            float scale = Mathf.Max(scaleX, scaleY);
+            var scale = Mathf.Max(scaleX, scaleY);
 
             transform.localScale = new Vector3(scale, scale, transform.localScale.z);
         }

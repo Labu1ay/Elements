@@ -8,10 +8,7 @@ namespace Elements.Configs.GameConfigs
     {
         [SerializeField] private List<LevelData> _levels;
 
-        public LevelData GetLevel(int levelNumber)
-        {
-            var index = levelNumber % _levels.Count;
-            return _levels[index];
-        }
+        public LevelData GetLevel(int levelNumber) => 
+            _levels[levelNumber % _levels.Count];
     }
 }

@@ -10,8 +10,7 @@ namespace Elements.Configs.GlobalConfigs
 
         [OdinSerialize] Dictionary<string, AudioClip> _audioClips = new Dictionary<string, AudioClip>();
 
-        public AudioClip GetAudioClip(string audioClipName) {
-            return _audioClips.ContainsKey(audioClipName) ? _audioClips[audioClipName] : null;
-        }
+        public AudioClip GetAudioClip(string audioClipName) => 
+            _audioClips.ContainsKey(audioClipName) ? _audioClips[audioClipName] : null;
     }
 }

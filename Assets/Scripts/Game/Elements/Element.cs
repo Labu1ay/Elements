@@ -108,7 +108,8 @@ namespace Elements.Game.Elements
         {
             IsInteraction = true;
             _cts = new CancellationTokenSource();
-            bool isCancelled = await _elementAnimation.AsyncSetAnimation(AnimationType.DESTROY, _cts.Token).SuppressCancellationThrow();
+            bool isCancelled = await _elementAnimation.AsyncSetAnimation(AnimationType.DESTROY, _cts.Token)
+                .SuppressCancellationThrow();
             
             if (isCancelled) return;
             _gridElementsService.RemoveElement(this);

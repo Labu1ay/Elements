@@ -11,8 +11,7 @@ namespace Elements.Configs.GameConfigs
 
         [OdinSerialize] Dictionary<ElementType, string> _paths = new Dictionary<ElementType, string>();
 
-        public string GetElementPath(ElementType type) {
-            return _paths.ContainsKey(type) ? _paths[type] : null;
-        }
+        public string GetElementPath(ElementType type) => 
+            _paths.ContainsKey(type) ? _paths[type] : null;
     }
 }

@@ -13,7 +13,6 @@ namespace Elements.Core.Controllers.GameControllers
     public class BalloonController : IInitializable, ILateDisposable
     {
         private const string BALLOON_PATH = "Balloon";
-
         private const int MAX_BALLOONS = 3;
         private const float MAX_Y = 8f;
         private const float MIN_Y = 3.5f;
@@ -21,8 +20,7 @@ namespace Elements.Core.Controllers.GameControllers
 
         private readonly IAssetService _assetService;
 
-        private Vector2 spawnInterval = new (2f, 5f);
-
+        private Vector2 _spawnInterval = new (2f, 5f);
         private float _timer;
         private ObjectPool<BalloonMover> _pool;
         private readonly List<BalloonMover> _activeBalloons = new();
@@ -51,7 +49,7 @@ namespace Elements.Core.Controllers.GameControllers
                 if (_activeBalloons.Count < MAX_BALLOONS && _timer <= 0f)
                 {
                     SpawnBalloon();
-                    _timer = Random.Range(spawnInterval.x, spawnInterval.y);
+                    _timer = Random.Range(_spawnInterval.x, _spawnInterval.y);
                 }
 
                 for (int i = _activeBalloons.Count - 1; i >= 0; i--)

@@ -14,7 +14,7 @@ namespace Elements.Core
             Application.targetFrameRate = 120;
             _sceneLoaderService.Load(Constants.GAME_SCENE_NAME, () =>
             {
-                _audioService.PlaySound(Constants.GAME_BACKGROUND_CLIP_KEY);
+                _audioService.PlaySound(Constants.GAME_BACKGROUND_CLIP_KEY, isLoop: true);
             });
         }
     }
